@@ -1,4 +1,4 @@
-# Stop: The Trailing Newline Secret Bug: Incident Post-Mortem
+# The Trailing Newline Secret Bug
 
 This issue causes 80% of database authentication failures when students create their first Kubernetes Secrets.
 
