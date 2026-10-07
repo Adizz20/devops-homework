@@ -8,9 +8,9 @@ spec:
   project: default
 
   source:
-    repoURL: https://github.com/Nency-Ravaliya/gitops-demo.git
+    repoURL: https://github.com/Adizz20/gitops.git
     targetRevision: main
-    path: app
+    path: 07-argocd/app
 
   destination:
     server: https://kubernetes.default.svc

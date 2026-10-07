@@ -57,11 +57,11 @@ docker run -d --name node-container -p 3000:3000 node
 Accessed at: `http://localhost:3000`
 
 ### Output
-![Node.js Hello World output](<images/Screenshot (82).png>)
+![Node.js Hello World output](<images/Screenshot 2026-09-02 001254.png>)
 
 ### Images
 
-![Node.js Hello World output](<images/Screenshot (82).png>)
+![Node.js Hello World output](<images/Screenshot 2026-09-02 001254.png>)
 
 The Node.js application successfully displayed the Hello World webpage.
 
@@ -118,11 +118,11 @@ docker run -d --name hello-python-container -p 5001:5000 hello-python
 Port `5001` was used on the host because port `5000` was already occupied. Accessed at: `http://localhost:5001`
 
 ### Output
-![Python Hello World output](<images/Screenshot (85).png>)
+![Python Hello World output](<images/Screenshot 2026-09-02 001300.png>)
 
 ### Images
 
-![Python Hello World output](<images/Screenshot (85).png>)
+![Python Hello World output](<images/Screenshot 2026-09-02 001300.png>)
 
 The Python application successfully displayed the Hello World webpage.
 
@@ -188,11 +188,11 @@ docker run -d --name hello-java-container -p 8080:8080 hello-java
 Accessed at: `http://localhost:8080`
 
 ### Output
-![Java Hello World output](<images/Screenshot (84).png>)
+![Java Hello World output](<images/Screenshot 2026-09-02 001305.png>)
 
 ### Images
 
-![Java Hello World output](<images/Screenshot (84).png>)
+![Java Hello World output](<images/Screenshot 2026-09-02 001305.png>)
 
 The Java application successfully displayed the Hello World webpage.
 
@@ -235,11 +235,11 @@ docker run -d --name hello-apache-container -p 8081:80 hello-apache
 Port `8081` on the host was mapped to port `80` inside the container. Accessed at: `http://localhost:8081`
 
 ### Output
-![Apache Hello World output](<images/Screenshot 2026-08-31 190102.png>)
+![Apache Hello World output](<images/Screenshot 2026-09-02 001312.png>)
 
 ### Images
 
-![Apache Hello World output](<images/Screenshot 2026-08-31 190102.png>)
+![Apache Hello World output](<images/Screenshot 2026-09-02 001312.png>)
 
 The Apache web server successfully served the Hello World webpage.
 
@@ -310,10 +310,10 @@ docker-images/
 │   ├── app.py
 │   └── requirements.txt
 ├── images/
-│   ├── Screenshot (82).png
-│   ├── Screenshot (84).png
-│   ├── Screenshot (85).png
-│   └── Screenshot 2026-08-31 190102.png
+│   ├── Screenshot 2026-09-02 001254.png
+│   ├── Screenshot 2026-09-02 001300.png
+│   ├── Screenshot 2026-09-02 001305.png
+│   └── Screenshot 2026-09-02 001312.png
 └── README.md
 ```
 
@@ -324,4 +324,3 @@ docker-images/
 Four applications were successfully containerized using Docker — Node.js, Python, Java, and Apache — each built into an image, run as a container, and verified through a browser.
 
 ---
-

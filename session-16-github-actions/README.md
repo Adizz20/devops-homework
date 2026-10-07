@@ -1,114 +1,535 @@
-# Session 16: CI/CD and GitHub Actions
+# Session 16 — CI/CD & GitHub Actions
 
-Manually building, testing, and deploying code after every change breaks teams.
+A hands-on session covering Continuous Integration and Continuous Delivery/Deployment (CI/CD) using GitHub Actions, demonstrated through an automated Python calculator pipeline.
 
-GitHub Actions solves this. It automates everything from code commit to production deployment.
+![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=flat-square&logo=githubactions)
+![Language](https://img.shields.io/badge/Language-Python-3776AB?style=flat-square&logo=python)
+![Tests](https://img.shields.io/badge/Tests-pytest-0A9EDC?style=flat-square&logo=pytest)
+![Runner](https://img.shields.io/badge/Runner-ubuntu--latest-E95420?style=flat-square&logo=ubuntu)
+![Status](https://img.shields.io/badge/status-passing-brightgreen?style=flat-square)
 
----
-
-## Why CI/CD?
-
-Without CI/CD, deploying means: build locally, test manually, upload manually, deploy manually.
-
-With CI/CD, every push to Git triggers automated build, test, and deploy.
+> A hands-on session covering Continuous Integration and Continuous Delivery/Deployment (CI/CD) using GitHub Actions.
 
 ---
 
-## Topics Covered
+## Overview
 
-| Folder | Topic |
-|--------|-------|
-| `01-ci-vs-cd/` | What is CI, what is CD, where they differ |
-| `02-pipeline-concepts/` | Stages, steps, jobs, and how they connect |
-| `03-github-actions-intro/` | What GitHub Actions is, how it works |
-| `04-workflows/` | Workflow YAML syntax, triggers, on: push |
-| `05-jobs-steps/` | Jobs, steps, uses, run, needs |
-| `06-runners/` | GitHub-hosted runners, self-hosted runners |
-| `07-secrets/` | Storing credentials, using secrets in workflows |
-| `08-artifacts/` | Uploading and downloading build artifacts |
-| `09-build-test-pipeline/` | Full CI pipeline: checkout, build, test, lint |
-| `mini-project/` | Build a complete CI pipeline for a Python app |
+This session focused on Continuous Integration and Continuous Delivery/Deployment (CI/CD) and how GitHub Actions can automate the software development lifecycle.
 
----
+The final demo project is a Python calculator application with an automated GitHub Actions pipeline for:
 
-## Core Concepts
+- Testing
+- Building
+- Security checking
+- Artifact generation
+- Pipeline execution
 
-**CI (Continuous Integration):** Every code push triggers automatic build and test.
-
-**CD (Continuous Delivery):** After tests pass, the app is automatically deployable.
-
-**CD (Continuous Deployment):** After tests pass, the app is automatically deployed to production.
-
-**Workflow:** A YAML file in `.github/workflows/` that defines automation.
-
-**Job:** A group of steps that runs on one runner machine.
-
-**Step:** A single command or action within a job.
-
-**Runner:** A machine (virtual or physical) that executes jobs.
+The project also covers the core concepts required to understand CI/CD pipelines.
 
 ---
 
-## Key Commands
+## 1. CI vs CD
 
-```bash
-# Check workflow syntax locally
-act --list
+### Continuous Integration (CI)
 
-# Trigger a workflow via GitHub CLI
-gh workflow run build.yml
+Continuous Integration is the practice of automatically building and testing code whenever developers push changes or create pull requests.
 
-# View workflow runs
-gh run list
+The goal is to detect bugs early and ensure that new changes do not break the existing application.
 
-# View a specific run's logs
-gh run view <run-id> --log
-
-# List all workflows in the repo
-gh workflow list
-```
-
----
-
-## Workflow Triggers
+Typical CI flow:
 
 ```text
-push           = runs on every push
-pull_request   = runs when a PR is opened or updated
-schedule       = runs on a cron schedule
-workflow_dispatch = manual trigger from GitHub UI
-release        = runs when a release is created
+Developer pushes code
+        ↓
+Checkout source code
+        ↓
+Install dependencies
+        ↓
+Run tests
+        ↓
+Build application
+        ↓
+Security checks
+        ↓
+Create artifact
+```
+
+### Continuous Delivery
+
+Continuous Delivery extends CI by ensuring that successfully tested and built software is always ready to be deployed.
+
+The deployment is normally triggered through an approval or release process.
+
+### Continuous Deployment
+
+Continuous Deployment goes one step further. After the automated checks pass, the application is automatically deployed to the target environment.
+
+```text
+CI
+ ↓
+Build + Test + Security
+ ↓
+Continuous Delivery
+ ↓
+Ready for deployment
+ ↓
+Continuous Deployment
+ ↓
+Production
+```
+
+This Session 16 demo primarily demonstrates the **CI portion** of the complete CI/CD lifecycle. Deployment concepts are covered as part of the theory.
+
+---
+
+# 2. CI/CD Pipeline
+
+A CI/CD pipeline is an automated sequence of operations that takes source code through different stages.
+
+The pipeline created in this session follows:
+
+```text
+Git Push
+   ↓
+Test Application
+   ↓
+ ┌───────────────┐
+ │               │
+Build Application   Security Check
+ │
+ ↓
+Build Artifact
+```
+
+The build job depends on the successful completion of the test job.
+
+This dependency is implemented using GitHub Actions:
+
+```yaml
+needs: test
 ```
 
 ---
 
-## Interview Preparation
+# 3. GitHub Actions
 
-**Beginner:**
+GitHub Actions is GitHub's automation and CI/CD platform.
 
-Q: What is the difference between CI and CD?
-A: CI is Continuous Integration, where every code push triggers automated build and test. CD is either Continuous Delivery (code is always deployable) or Continuous Deployment (code is automatically pushed to production after tests pass).
+It allows workflows to automatically execute when events occur in a repository.
 
-Q: What is a GitHub Actions workflow?
-A: A workflow is a YAML file stored in `.github/workflows/`. It defines automated processes triggered by events like push or pull_request. Each workflow contains one or more jobs, and each job contains steps.
+For this project, the workflow is stored at:
 
-**Intermediate:**
+```text
+.github/workflows/session16-ci.yml
+```
 
-Q: What is the difference between `uses` and `run` in a step?
-A: `uses` calls a pre-built action from GitHub Marketplace or another repository (e.g., `actions/checkout@v4`). `run` executes shell commands directly on the runner (e.g., `run: npm test`).
+The workflow is triggered by:
 
-Q: How do you pass secrets to a workflow?
-A: Store the secret in GitHub repository Settings > Secrets and variables > Actions. Reference it in the workflow YAML using `${{ secrets.SECRET_NAME }}`. Secrets are masked in logs.
+```yaml
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+```
 
-**Scenario-Based:**
-
-Q: Your workflow runs for 45 minutes but only 5 minutes of that is actual work. How do you speed it up?
-A: Use caching with `actions/cache` to cache dependencies (node_modules, pip packages, Maven repository). Split independent jobs and run them in parallel using `needs` correctly. Use matrix builds only when necessary.
+Therefore, the pipeline can execute automatically after pushes and pull requests, or manually through GitHub.
 
 ---
 
-## Reference
+# 4. Workflow
 
-* **GitHub Actions Documentation:** https://docs.github.com/en/actions
-* **GitHub Actions Marketplace:** https://github.com/marketplace?type=actions
-* **Workflow syntax reference:** https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+A workflow is a YAML file that defines an automated process.
+
+The Session 16 workflow is:
+
+```text
+session16-ci.yml
+```
+
+It contains three jobs:
+
+```text
+Test Application
+       ↓
+Build Application
+
+Test Application
+       ↓
+Security Check
+```
+
+The test job must complete successfully before the build and security jobs continue.
+
+---
+
+# 5. Jobs
+
+A job is a collection of related steps executed by GitHub Actions.
+
+This project contains three jobs.
+
+### Test Application
+
+Responsible for:
+
+- Checking out the source code
+- Setting up Python
+- Installing dependencies
+- Running pytest
+
+### Build Application
+
+Responsible for:
+
+- Checking out the source code
+- Setting up Python
+- Running the build script
+- Displaying build information
+- Uploading the build directory as an artifact
+
+### Security Check
+
+Responsible for checking the repository for common sensitive files such as:
+
+```text
+.env
+*.pem
+*.key
+```
+
+---
+
+# 6. Steps
+
+A step is an individual operation inside a job.
+
+Examples from the workflow include:
+
+```yaml
+- name: Checkout source code
+  uses: actions/checkout@v6
+```
+
+and:
+
+```yaml
+- name: Run tests
+  run: pytest -v
+```
+
+There are two common ways to define an Action step.
+
+### `uses`
+
+`uses` calls a reusable GitHub Action.
+
+Example:
+
+```yaml
+uses: actions/checkout@v6
+```
+
+### `run`
+
+`run` executes shell commands directly on the runner.
+
+Example:
+
+```yaml
+run: pytest -v
+```
+
+---
+
+# 7. Runners
+
+A runner is the machine that executes a GitHub Actions job.
+
+This project uses GitHub-hosted Ubuntu runners:
+
+```yaml
+runs-on: ubuntu-latest
+```
+
+Each job runs inside a fresh runner environment.
+
+The runner performs operations such as:
+
+```text
+Checkout code
+Install Python
+Install dependencies
+Run tests
+Build application
+Run security checks
+Upload artifacts
+```
+
+---
+
+# 8. Secrets
+
+Secrets are sensitive values that should not be stored directly inside source code or workflow files.
+
+Examples include:
+
+- API keys
+- Passwords
+- Cloud credentials
+- Access tokens
+- Deployment credentials
+
+GitHub repository secrets can be stored under:
+
+```text
+Repository
+→ Settings
+→ Secrets and variables
+→ Actions
+```
+
+A secret can then be referenced inside a workflow using:
+
+```yaml
+${{ secrets.SECRET_NAME }}
+```
+
+Secrets should never be hard-coded into workflow files or printed into workflow logs.
+
+---
+
+# 9. Artifacts
+
+Artifacts are files generated during a workflow that can be stored and downloaded after the workflow completes.
+
+This project creates a build directory containing:
+
+```text
+build/
+├── build-info.txt
+└── calculator.py
+```
+
+The workflow uploads this directory using:
+
+```yaml
+- name: Upload build artifact
+  uses: actions/upload-artifact@v4
+  with:
+    name: calculator-build
+    path: session-16-github-actions/session-16-github-actions/10-final-cicd-pipeline/build/
+```
+
+The artifact is named:
+
+```text
+calculator-build
+```
+
+This allows the generated build output to be retained by GitHub Actions.
+
+---
+
+# 10. Application Build
+
+The application contains a simple Python calculator.
+
+The build process is handled by:
+
+```text
+build.sh
+```
+
+The build script generates the `build/` directory and creates build metadata.
+
+Example output:
+
+```text
+Application: Session 16 Calculator
+Build Status: SUCCESS
+Build Date: Mon Oct  5 16:59:07 IST 2026
+```
+
+The build was also verified locally.
+
+![Session 16 build success](./images/session16-build-success-aditya-final.png)
+
+---
+
+# 11. Testing
+
+The project uses `pytest` for automated testing.
+
+The tests are located at:
+
+```text
+tests/test_calculator.py
+```
+
+The test suite covers calculator operations including:
+
+- Addition
+- Subtraction
+- Multiplication
+- Division
+- Division by zero
+
+The same testing concept is executed automatically inside the GitHub Actions runner.
+
+The pipeline will not allow the build stage to continue if the test job fails.
+
+---
+
+# 12. Security Check
+
+The pipeline also performs a basic security check.
+
+It searches the repository for common sensitive file types:
+
+```text
+.env
+*.pem
+*.key
+```
+
+If one of these files is detected, the security job fails.
+
+This demonstrates the concept of adding automated security checks into a CI pipeline.
+
+---
+
+# 13. Pipeline Execution
+
+The final workflow was pushed to the `main` branch and executed successfully using GitHub Actions.
+
+The successful execution shows:
+
+- Test Application — successful
+- Build Application — successful
+- Security Check — successful
+- Artifact generated — 1
+
+![Successful Session 16 GitHub Actions pipeline](./images/session16-github-actions-success-aditya-final.png)
+
+The pipeline execution demonstrates how GitHub Actions connects individual jobs into an automated workflow.
+
+---
+
+# 14. Project Structure
+
+```text
+10-final-cicd-pipeline/
+│
+├── app/
+│   ├── __init__.py
+│   └── calculator.py
+│
+├── tests/
+│   └── test_calculator.py
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
+├── requirements.txt
+├── build.sh
+├── .gitignore
+└── README.md
+```
+
+The repository-level workflow used for the final execution is:
+
+```text
+.github/workflows/session16-ci.yml
+```
+
+The project-level workflow inside `10-final-cicd-pipeline/` is `ci.yml`, while the repository-level workflow that actually executes on GitHub is `session16-ci.yml`.
+
+---
+
+# 15. Important GitHub Actions Concepts
+
+| Concept | Meaning |
+|---|---|
+| Workflow | YAML definition of an automated process |
+| Job | Group of related steps |
+| Step | Individual command or reusable action |
+| Runner | Machine that executes a job |
+| `uses` | Executes a reusable GitHub Action |
+| `run` | Executes shell commands |
+| `needs` | Defines job dependencies |
+| Artifact | Stored output generated by a workflow |
+| Secret | Secure value stored by GitHub |
+| Trigger | Event that starts a workflow |
+
+---
+
+# 16. Final Pipeline
+
+The completed Session 16 pipeline can be summarized as:
+
+```text
+                    Git Push
+                       │
+                       ▼
+               ┌───────────────┐
+               │ Test Application │
+               └───────┬───────┘
+                       │
+              ┌────────┴────────┐
+              ▼                 ▼
+      ┌───────────────┐ ┌───────────────┐
+      │ Build          │ │ Security Check│
+      │ Application    │ │               │
+      └───────┬───────┘ └───────────────┘
+              │
+              ▼
+       Build Artifact
+              │
+              ▼
+       GitHub Artifacts
+```
+
+---
+
+# 17. Conclusion
+
+Session 16 demonstrated the fundamentals of CI/CD and GitHub Actions through a working Python application.
+
+The implementation covered:
+
+- CI vs CD
+- CI/CD pipeline concepts
+- GitHub Actions
+- Workflows
+- Jobs
+- Steps
+- Runners
+- Secrets
+- Artifacts
+- Automated testing
+- Application builds
+- Security checks
+- Successful pipeline execution
+
+The final pipeline successfully automated testing, building, security validation, and artifact creation whenever changes were pushed to the `main` branch.
+
+---
+
+## Notes
+
+- All images are referenced from `./images/` — make sure that folder is committed to the repository, otherwise the image links will break on GitHub.
+- Both workflow paths are documented: the project-level `ci.yml` inside `10-final-cicd-pipeline/` and the repository-level `session16-ci.yml` that actually runs on GitHub.
+- Code fences, tables, and headings have been checked for valid GitHub Markdown rendering.
+
+---
+
+## Author
+
+**Aditya Vikram Singh**
+
+Roll No.: **24BCS10429**
